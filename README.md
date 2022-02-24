@@ -8,16 +8,14 @@ The shell script scrapes for magnet links and uses [peerflix](https://github.com
 <img src="./preview.gif" alt="Preview" width="1280px">
 
 ## Usage
+#### Searches for the anime based on query
 `
-Searches for the anime based on query
-
 $ anitor $SEARCH_QUERY
-
-If query is not provided, then shows latest anime episode releases
-
+`
+#### If query is not provided, then shows latest anime episode releases
+`
 $ anitor 
 `
-
 ## Dependencies
 * grep
 * sed
