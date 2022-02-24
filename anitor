@@ -1,0 +1,26 @@
+#!/bin/sh
+API_URL='https://nyaasi-api.herokuapp.com/'
+
+# Grabs the latest anime episodes if no arguments found
+function latest () {
+	latest=$( curl -s https://subsplease.org/rss/\?r\=1080 | sed 's/ /_/g;s/>/>\n/g' )
+	results=$( printf "%s\n" $latest | grep -o '.*</title>' )
+	magnets=$( printf "%s\n" $latest | grep -o 'magnet:?xt=urn:btih:[A-Za-z0-9]*' )
+	selection=$( printf "%s\n" $results | tail -n +2 | sed 's@\[SubsPlease\]_@> @g;s@_(1.*@@g;s@_@ @g' | nl -w 4  -s " " | dmenu -l 25 -p "Watch " )
+	[ -z "$selection" ] && echo "No selection. Bye!" && exit
+	selection=$( grep -o '[0-9]* > ' <<< $selection | sed 's@ > @@g' )
+	magnet=$( printf "%s\n" $magnets | head -n $selection  | tail -n 1 )
+	peerflix "$magnet" -k -l -q -- --fullscreen
+	exit
+}
+
+query=$( printf '%s' "$*" | tr ' ' '_' )
+[ -z "$query" ] && latest
+output=$( curl -s $API_URL"?q=$query&category=1&subcategory=2" | sed 's@,@,\n@g;s@ @_@g;' )
+results=$( printf "%s\n" $output | grep -o 'name\":\"[^\"]*' | sed 's@name\":\"@@g' )
+magnets=$( printf "%s\n" $output | grep -o 'magnet:?xt=urn:btih:[A-Za-z0-9]*' )
+selection=$( printf "> %s\n" $results | sed 's@_@ @g;' | nl -w 4  -s " " | dmenu -l 25 -p "Watch " )
+[ -z "$selection" ] && echo "No selection. Bye!" && exit
+selection=$( grep -o '[0-9]* > '<<< $selection | sed 's@ > @@g;' )
+magnet=$( printf "%s\n" $magnets | head -n $selection  | tail -n 1 )
+peerflix "$magnet" -k -l -q -- --fullscreen
